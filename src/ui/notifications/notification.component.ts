@@ -1,6 +1,7 @@
-import { Component, html, IHooks, Renderer } from '@plumejs/core';
+import { Component, html, IHooks, Input, Renderer, signal } from '@plumejs/core';
 import notificationStyles from './notification.component.scss?inline';
-import { INotification, NotificationType } from './notification.type';
+import { NotificationType } from './notification.type';
+import { Message } from './message';
 
 @Component({
   selector: 'ui-notification-message',
@@ -9,34 +10,38 @@ import { INotification, NotificationType } from './notification.type';
   deps: [Renderer]
 })
 export class NotificationMessage implements IHooks {
-  static readonly observedProperties = <const>['notification'];
-  notification: INotification;
+  @Input()
+  message = signal<Message>();
 
   constructor(private renderer: Renderer) {}
 
-  mount() {
-    this.renderer.emitEvent('rendered');
-  }
+  onPropertiesChanged() {
+    if(this.message().autoHide) {
+      setTimeout(() => {
+        this.renderer.emitEvent('dismiss', { index: this.message().index });
+      }, 2000);
+    }
+  };
 
   onDismiss(e: Event) {
     e.preventDefault();
-    this.notification.dismiss();
+    this.renderer.emitEvent('dismiss', { index: this.message().index });
   }
 
   render() {
-    if (this.notification && this.notification.message.content) {
+    if (this.message() && this.message().content) {
       return html`
         <div
           part="notification"
-          class="notification ${this.notification.message.type === NotificationType.Info
+          class="notification ${this.message().type === NotificationType.Info
             ? 'is-info'
-            : this.notification.message.type === NotificationType.Danger
+            : this.message().type === NotificationType.Danger
             ? 'is-danger'
             : ''}"
         >
-          ${this.notification.message.content}
+          ${this.message().content}
           <button
-            class="dismiss ${this.notification.message.autoHide ? 'hide-notify' : ''}"
+            class="dismiss ${this.message().autoHide ? 'hide-notify' : ''}"
             onclick=${(e: Event) => {
               this.onDismiss(e);
             }}

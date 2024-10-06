@@ -6,7 +6,6 @@ export declare class NotificationContainerComponent implements IHooks {
     onDismiss: Subject<number>;
     setNotifications(message: Message): void;
     private dismiss;
-    private _renderNotification;
     _renderNotifications(): DocumentFragment | DocumentFragment[];
     unmount(): void;
     render(): DocumentFragment;

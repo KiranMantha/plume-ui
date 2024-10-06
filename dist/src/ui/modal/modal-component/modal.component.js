@@ -1,11 +1,11 @@
 import { __decorate, __metadata } from "tslib";
-import { Component, DomTransition, html } from '@plumejs/core';
+import { Component, html, Input, signal } from '@plumejs/core';
 import { Subject } from 'rxjs';
 import modalComponentStyles from './modal.component.scss?inline';
+import { DomTransition } from '../../common';
 let ModalComponent = class ModalComponent {
     domSrvc;
-    static observedProperties = ['modalData'];
-    modalData;
+    modalData = signal();
     onClose = new Subject();
     onOpen = new Subject();
     modalContentRef;
@@ -27,7 +27,7 @@ let ModalComponent = class ModalComponent {
         this.onClose.next();
     }
     _renderModalCloseButton() {
-        if (this.modalData.hideDefaultCloseButton) {
+        if (this.modalData().hideDefaultCloseButton) {
             return html ``;
         }
         else {
@@ -53,15 +53,19 @@ let ModalComponent = class ModalComponent {
           class="modalDialog-content in out"
         >
           <div class="modalDialog-header">
-            <div class="title">${this.modalData ? this.modalData.title : null}</div>
-            ${this.modalData ? this._renderModalCloseButton() : null}
+            <div class="title">${this.modalData() ? this.modalData().title : null}</div>
+            ${this.modalData() ? this._renderModalCloseButton() : null}
           </div>
-          <div>${this.modalData ? this.modalData.bodyTemplate() : null}</div>
+          <div>${this.modalData() ? this.modalData().bodyTemplate() : null}</div>
         </div>
       </div>
     `;
     }
 };
+__decorate([
+    Input(),
+    __metadata("design:type", Object)
+], ModalComponent.prototype, "modalData", void 0);
 ModalComponent = __decorate([
     Component({
         selector: 'ui-modal-dialog',

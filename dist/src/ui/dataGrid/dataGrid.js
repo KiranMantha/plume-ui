@@ -1,9 +1,8 @@
 import { __decorate, __metadata } from "tslib";
-import { Component, html, Renderer } from '@plumejs/core';
+import { Component, html, Input, Renderer, signal } from '@plumejs/core';
 import dataGridStyles from './dataGrid.scss?inline';
 let DataGrid = class DataGrid {
     renderer;
-    static observedProperties = ['gridOptions'];
     columnHeaders;
     columnValues;
     colGroup;
@@ -11,7 +10,7 @@ let DataGrid = class DataGrid {
     rowActions;
     tableClassName;
     variant;
-    gridOptions;
+    gridOptions = signal();
     constructor(renderer) {
         this.renderer = renderer;
     }
@@ -20,7 +19,7 @@ let DataGrid = class DataGrid {
     }
     onPropertiesChanged() {
         console.log(this.gridOptions);
-        const { columns, data, rowActions = [], variant = 'table', colGroup = [] } = this.gridOptions;
+        const { columns, data, rowActions = [], variant = 'table', colGroup = [] } = this.gridOptions();
         this.columnHeaders = columns.map((column) => column.label);
         this.columnValues = columns.map((column) => column.value);
         this.rowData = data;
@@ -37,7 +36,7 @@ let DataGrid = class DataGrid {
         }
     }
     render() {
-        if (this.gridOptions) {
+        if (this.gridOptions()) {
             return html `
         <table class="${this.variant === 'table' ? 'table-bordered' : 'table-list table-hover'} ${this.tableClassName}">
           ${this.colGroup.length
@@ -78,6 +77,10 @@ let DataGrid = class DataGrid {
         }
     }
 };
+__decorate([
+    Input(),
+    __metadata("design:type", Object)
+], DataGrid.prototype, "gridOptions", void 0);
 DataGrid = __decorate([
     Component({
         selector: 'ui-datagrid',

@@ -1,4 +1,4 @@
-import { Component, html, IHooks, Renderer } from '@plumejs/core';
+import { Component, html, IHooks, Input, Renderer, signal } from '@plumejs/core';
 import toggleStyles from './toggle.component.scss?inline';
 
 export interface IToggleInput {
@@ -20,19 +20,18 @@ const defaultToggleOptions: IToggleInput = {
   deps: [Renderer]
 })
 export class ToggleComponent implements IHooks {
-  static readonly observedProperties = <const>['toggleOptions'];
 
-  toggleOptions: IToggleInput = { ...defaultToggleOptions };
+  @Input()
+  toggleOptions = signal<IToggleInput>({ ...defaultToggleOptions }, (_prevOptions, newOptions) => {
+    return {
+      ...defaultToggleOptions,
+      ...newOptions
+    }
+  });
+
   private _id = Math.random();
 
   constructor(private renderer: Renderer) {}
-
-  onPropertiesChanged() {
-    this.toggleOptions = {
-      ...defaultToggleOptions,
-      ...this.toggleOptions
-    };
-  }
 
   private toggleChange(e: Event) {
     const value = (e.target as any).checked;
@@ -41,17 +40,17 @@ export class ToggleComponent implements IHooks {
 
   render() {
     return html`<div class="toggle-container" part="toggle-container">
-      <span>${this.toggleOptions.offText.translate()}</span>
+      <span>${this.toggleOptions().offText.translate()}</span>
       <input
         type="checkbox"
         id="${this._id}"
-        checked="${!!this.toggleOptions.isSelected}"
+        checked="${!!this.toggleOptions().isSelected}"
         onchange=${(e: Event) => {
           this.toggleChange(e);
         }}
       />
       <label for="${this._id}"></label>
-      <span>${this.toggleOptions.onText.translate()}</span>
+      <span>${this.toggleOptions().onText.translate()}</span>
     </div>`;
   }
 }

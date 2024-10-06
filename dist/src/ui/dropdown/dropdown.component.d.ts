@@ -2,8 +2,7 @@ import { Renderer } from '@plumejs/core';
 import { IDropdownOptions, IOption } from './dropdown.interface';
 export declare class DropdownComponent<T> {
     private renderer;
-    static readonly observedProperties: readonly ["dropdownOptions"];
-    dropdownOptions: IDropdownOptions<T>;
+    dropdownOptions: import("@plumejs/core/dist/src").Signal<IDropdownOptions<T>>;
     private _detailsNode;
     private _summaryNode;
     private _optionsContainerNode;
@@ -11,7 +10,6 @@ export declare class DropdownComponent<T> {
     private _isMultiSelect;
     private _selectedOptions;
     constructor(renderer: Renderer);
-    onPropertiesChanged(): void;
     onOptionSelected(isChecked: boolean, selectedOption: IOption<T>, index: number): void;
     onToggle(): void;
     private getSummaryText;

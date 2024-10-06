@@ -1,4 +1,4 @@
-import { Component, html, IHooks, Renderer } from '@plumejs/core';
+import { Component, html, IHooks, Input, Renderer, signal } from '@plumejs/core';
 import { DataGridOptions } from './dataGrid..model';
 import dataGridStyles from './dataGrid.scss?inline';
 
@@ -8,7 +8,6 @@ import dataGridStyles from './dataGrid.scss?inline';
   deps: [Renderer]
 })
 export class DataGrid implements IHooks {
-  static readonly observedProperties = <const>['gridOptions'];
   private columnHeaders: string[];
   private columnValues: string[];
   private colGroup: number[];
@@ -17,7 +16,8 @@ export class DataGrid implements IHooks {
   private tableClassName: string;
   private variant: 'table' | 'list';
 
-  gridOptions: DataGridOptions;
+  @Input()
+  gridOptions =signal<DataGridOptions>();
 
   constructor(private renderer: Renderer) {}
 
@@ -27,7 +27,7 @@ export class DataGrid implements IHooks {
 
   onPropertiesChanged() {
     console.log(this.gridOptions);
-    const { columns, data, rowActions = [], variant = 'table', colGroup = [] } = this.gridOptions;
+    const { columns, data, rowActions = [], variant = 'table', colGroup = [] } = this.gridOptions();
     this.columnHeaders = columns.map((column) => column.label);
     this.columnValues = columns.map((column) => column.value);
     this.rowData = data;
@@ -45,7 +45,7 @@ export class DataGrid implements IHooks {
   }
 
   render() {
-    if (this.gridOptions) {
+    if (this.gridOptions()) {
       return html`
         <table class="${this.variant === 'table' ? 'table-bordered' : 'table-list table-hover'} ${this.tableClassName}">
           ${this.colGroup.length

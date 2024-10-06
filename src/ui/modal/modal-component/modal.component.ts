@@ -1,7 +1,8 @@
-import { Component, DomTransition, html, IHooks } from '@plumejs/core';
+import { Component, html, IHooks, Input, signal } from '@plumejs/core';
 import { Subject } from 'rxjs';
 import { IModalData } from '../modal.interface';
 import modalComponentStyles from './modal.component.scss?inline';
+import { DomTransition } from '../../common';
 
 @Component({
   selector: 'ui-modal-dialog',
@@ -10,9 +11,9 @@ import modalComponentStyles from './modal.component.scss?inline';
   deps: [DomTransition]
 })
 export class ModalComponent implements IHooks {
-  static readonly observedProperties = <const>['modalData'];
+  @Input()
+  modalData = signal<IModalData>();
 
-  modalData: IModalData;
   onClose: Subject<void> = new Subject();
   onOpen: Subject<void> = new Subject();
 
@@ -38,7 +39,7 @@ export class ModalComponent implements IHooks {
   }
 
   private _renderModalCloseButton() {
-    if (this.modalData.hideDefaultCloseButton) {
+    if (this.modalData().hideDefaultCloseButton) {
       return html``;
     } else {
       return html`
@@ -64,10 +65,10 @@ export class ModalComponent implements IHooks {
           class="modalDialog-content in out"
         >
           <div class="modalDialog-header">
-            <div class="title">${this.modalData ? this.modalData.title : null}</div>
-            ${this.modalData ? this._renderModalCloseButton() : null}
+            <div class="title">${this.modalData() ? this.modalData().title : null}</div>
+            ${this.modalData() ? this._renderModalCloseButton() : null}
           </div>
-          <div>${this.modalData ? this.modalData.bodyTemplate() : null}</div>
+          <div>${this.modalData() ? this.modalData().bodyTemplate() : null}</div>
         </div>
       </div>
     `;

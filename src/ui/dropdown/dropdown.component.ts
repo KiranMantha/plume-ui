@@ -1,4 +1,4 @@
-import { Component, html, Renderer } from '@plumejs/core';
+import { Component, html, Input, Renderer, signal } from '@plumejs/core';
 import dropdownStyles from './dropdown.component.scss?inline';
 import { IDropdownOptions, IOption } from './dropdown.interface';
 
@@ -19,47 +19,47 @@ const defaultDropdownOptions: IDropdownOptions<any> = {
   deps: [Renderer]
 })
 export class DropdownComponent<T> {
-  static readonly observedProperties = <const>['dropdownOptions'];
 
-  dropdownOptions: IDropdownOptions<T> = { ...defaultDropdownOptions };
-
-  private _detailsNode: HTMLElement;
-  private _summaryNode: HTMLElement;
-  private _optionsContainerNode: HTMLElement;
-  private _summaryText: string;
-  private _isMultiSelect = false;
-  private _selectedOptions = [];
-
-  constructor(private renderer: Renderer) {}
-
-  onPropertiesChanged() {
-    if (this.dropdownOptions.options.length) {
-      this.dropdownOptions = {
-        ...defaultDropdownOptions,
-        ...this.dropdownOptions
+  @Input()
+  dropdownOptions = signal<IDropdownOptions<T>>({ ...defaultDropdownOptions }, (prevState, newState) => {
+    if (newState.options.length) {
+      const updatedDropdownOptions = {
+        ...prevState,
+        ...newState
       };
-      const { multiple, resetDropdown } = this.dropdownOptions;
+
+      const { multiple, resetDropdown } = updatedDropdownOptions;
       if (!!resetDropdown) {
         this._optionsContainerNode.innerHTML = '';
         this._selectedOptions = [];
-        this.dropdownOptions.options = this.dropdownOptions.options.map((option) => {
+        updatedDropdownOptions.options = updatedDropdownOptions.options.map((option) => {
           option.selected = false;
           return option;
         });
       } else {
-        this._selectedOptions = this.dropdownOptions.options.filter((item) => !!item.selected);
+        this._selectedOptions = updatedDropdownOptions.options.filter((item) => !!item.selected);
       }
       this._isMultiSelect = multiple;
+      return { ...updatedDropdownOptions };
     }
-  }
+  });
+
+  private _detailsNode: HTMLElement;
+  private _summaryNode: HTMLElement;
+  private _optionsContainerNode: HTMLElement;
+  private _summaryText: string; 
+  private _isMultiSelect = false;
+  private _selectedOptions = [];
+
+  constructor(private renderer: Renderer) {}
 
   onOptionSelected(isChecked: boolean, selectedOption: IOption<T>, index: number) {
     if (!this._isMultiSelect) {
       this._selectedOptions = [selectedOption];
     } else {
       // update selected options
-      this.dropdownOptions.options[index].selected = isChecked;
-      this._selectedOptions = this.dropdownOptions.options.filter((item) => !!item.selected);
+      this.dropdownOptions().options[index].selected = isChecked;
+      this._selectedOptions = this.dropdownOptions().options.filter((item) => !!item.selected);
     }
 
     // set button text and emit selected options
@@ -82,24 +82,24 @@ export class DropdownComponent<T> {
     if (this._isMultiSelect) {
       if (this._selectedOptions.length) {
         return (
-          this.dropdownOptions.buttonText?.(this._selectedOptions) ||
+          this.dropdownOptions().buttonText?.(this._selectedOptions) ||
           this._selectedOptions.map((item) => item.label).join(',')
         );
       } else {
-        return this.dropdownOptions.defaultText;
+        return this.dropdownOptions().defaultText;
       }
     } else {
       if (this._selectedOptions.length) {
         return this._selectedOptions[0].label;
       } else {
-        this.dropdownOptions.options[0].selected = true;
-        return this.dropdownOptions.options[0].label;
+        this.dropdownOptions().options[0].selected = true;
+        return this.dropdownOptions().options[0].label;
       }
     }
   }
 
   private buildItems() {
-    const items = this.dropdownOptions.options.map((option, index) => {
+    const items = this.dropdownOptions().options.map((option, index) => {
       return html`
         <li>
           <input
@@ -115,7 +115,7 @@ export class DropdownComponent<T> {
         </li>
       `;
     });
-    if (this.dropdownOptions.enableFilter) {
+    if (this.dropdownOptions().enableFilter) {
       const filterNode = html` <li class="filter">
         <input
           type="search"
@@ -175,12 +175,12 @@ export class DropdownComponent<T> {
   }
 
   render() {
-    if (this.dropdownOptions.options.length) {
+    if (this.dropdownOptions().options.length) {
       return html`
         <details
           role="list"
           part="list"
-          class="${this.dropdownOptions.disable ? 'disabled' : ''}"
+          class="${this.dropdownOptions().disable ? 'disabled' : ''}"
           data-preserve-attributes="${this._isMultiSelect}"
           ref=${(node) => {
             this._detailsNode = node;

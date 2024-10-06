@@ -1,10 +1,10 @@
-import { DomTransition, IHooks } from '@plumejs/core';
+import { IHooks } from '@plumejs/core';
 import { Subject } from 'rxjs';
 import { IModalData } from '../modal.interface';
+import { DomTransition } from '../../common';
 export declare class ModalComponent implements IHooks {
     private domSrvc;
-    static readonly observedProperties: readonly ["modalData"];
-    modalData: IModalData;
+    modalData: import("@plumejs/core/dist/src").Signal<IModalData>;
     onClose: Subject<void>;
     onOpen: Subject<void>;
     private modalContentRef;

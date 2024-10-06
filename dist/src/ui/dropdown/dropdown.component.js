@@ -1,5 +1,5 @@
 import { __decorate, __metadata } from "tslib";
-import { Component, html, Renderer } from '@plumejs/core';
+import { Component, html, Input, Renderer, signal } from '@plumejs/core';
 import dropdownStyles from './dropdown.component.scss?inline';
 const defaultDropdownOptions = {
     options: [],
@@ -12,8 +12,28 @@ const defaultDropdownOptions = {
 };
 let DropdownComponent = class DropdownComponent {
     renderer;
-    static observedProperties = ['dropdownOptions'];
-    dropdownOptions = { ...defaultDropdownOptions };
+    dropdownOptions = signal({ ...defaultDropdownOptions }, (prevState, newState) => {
+        if (newState.options.length) {
+            const updatedDropdownOptions = {
+                ...prevState,
+                ...newState
+            };
+            const { multiple, resetDropdown } = updatedDropdownOptions;
+            if (!!resetDropdown) {
+                this._optionsContainerNode.innerHTML = '';
+                this._selectedOptions = [];
+                updatedDropdownOptions.options = updatedDropdownOptions.options.map((option) => {
+                    option.selected = false;
+                    return option;
+                });
+            }
+            else {
+                this._selectedOptions = updatedDropdownOptions.options.filter((item) => !!item.selected);
+            }
+            this._isMultiSelect = multiple;
+            return { ...updatedDropdownOptions };
+        }
+    });
     _detailsNode;
     _summaryNode;
     _optionsContainerNode;
@@ -23,34 +43,13 @@ let DropdownComponent = class DropdownComponent {
     constructor(renderer) {
         this.renderer = renderer;
     }
-    onPropertiesChanged() {
-        if (this.dropdownOptions.options.length) {
-            this.dropdownOptions = {
-                ...defaultDropdownOptions,
-                ...this.dropdownOptions
-            };
-            const { multiple, resetDropdown } = this.dropdownOptions;
-            if (!!resetDropdown) {
-                this._optionsContainerNode.innerHTML = '';
-                this._selectedOptions = [];
-                this.dropdownOptions.options = this.dropdownOptions.options.map((option) => {
-                    option.selected = false;
-                    return option;
-                });
-            }
-            else {
-                this._selectedOptions = this.dropdownOptions.options.filter((item) => !!item.selected);
-            }
-            this._isMultiSelect = multiple;
-        }
-    }
     onOptionSelected(isChecked, selectedOption, index) {
         if (!this._isMultiSelect) {
             this._selectedOptions = [selectedOption];
         }
         else {
-            this.dropdownOptions.options[index].selected = isChecked;
-            this._selectedOptions = this.dropdownOptions.options.filter((item) => !!item.selected);
+            this.dropdownOptions().options[index].selected = isChecked;
+            this._selectedOptions = this.dropdownOptions().options.filter((item) => !!item.selected);
         }
         this._summaryNode.textContent = this.getSummaryText();
         this.renderer.emitEvent('optionselected', {
@@ -67,11 +66,11 @@ let DropdownComponent = class DropdownComponent {
     getSummaryText() {
         if (this._isMultiSelect) {
             if (this._selectedOptions.length) {
-                return (this.dropdownOptions.buttonText?.(this._selectedOptions) ||
+                return (this.dropdownOptions().buttonText?.(this._selectedOptions) ||
                     this._selectedOptions.map((item) => item.label).join(','));
             }
             else {
-                return this.dropdownOptions.defaultText;
+                return this.dropdownOptions().defaultText;
             }
         }
         else {
@@ -79,13 +78,13 @@ let DropdownComponent = class DropdownComponent {
                 return this._selectedOptions[0].label;
             }
             else {
-                this.dropdownOptions.options[0].selected = true;
-                return this.dropdownOptions.options[0].label;
+                this.dropdownOptions().options[0].selected = true;
+                return this.dropdownOptions().options[0].label;
             }
         }
     }
     buildItems() {
-        const items = this.dropdownOptions.options.map((option, index) => {
+        const items = this.dropdownOptions().options.map((option, index) => {
             return html `
         <li>
           <input
@@ -101,7 +100,7 @@ let DropdownComponent = class DropdownComponent {
         </li>
       `;
         });
-        if (this.dropdownOptions.enableFilter) {
+        if (this.dropdownOptions().enableFilter) {
             const filterNode = html ` <li class="filter">
         <input
           type="search"
@@ -156,12 +155,12 @@ let DropdownComponent = class DropdownComponent {
         }
     }
     render() {
-        if (this.dropdownOptions.options.length) {
+        if (this.dropdownOptions().options.length) {
             return html `
         <details
           role="list"
           part="list"
-          class="${this.dropdownOptions.disable ? 'disabled' : ''}"
+          class="${this.dropdownOptions().disable ? 'disabled' : ''}"
           data-preserve-attributes="${this._isMultiSelect}"
           ref=${(node) => {
                 this._detailsNode = node;
@@ -194,6 +193,10 @@ let DropdownComponent = class DropdownComponent {
         }
     }
 };
+__decorate([
+    Input(),
+    __metadata("design:type", Object)
+], DropdownComponent.prototype, "dropdownOptions", void 0);
 DropdownComponent = __decorate([
     Component({
         selector: 'ui-dropdown',

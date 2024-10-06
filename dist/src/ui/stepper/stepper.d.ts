@@ -1,8 +1,7 @@
 import { IHooks } from '@plumejs/core';
 import { StepperOptions } from './stepper.model';
 export declare class Stepper implements IHooks {
-    static readonly observedProperties: readonly ["stepperOptions", "currentStep"];
-    currentStep: number;
-    stepperOptions: StepperOptions;
-    render(): DocumentFragment | "";
+    currentStep: import("@plumejs/core/dist/src").Signal<number>;
+    stepperOptions: import("@plumejs/core/dist/src").Signal<StepperOptions>;
+    render(): "" | DocumentFragment;
 }

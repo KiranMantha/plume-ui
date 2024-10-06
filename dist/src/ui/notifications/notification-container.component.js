@@ -1,43 +1,30 @@
 import { __decorate } from "tslib";
-import { Component, html } from '@plumejs/core';
+import { Component, html, signal } from '@plumejs/core';
 import { Subject } from 'rxjs';
 import notificationContainerStyles from './notification-container.component.scss?inline';
 let NotificationContainerComponent = class NotificationContainerComponent {
-    _notifications = [];
+    _notifications = signal([], (prevMessages, newMessages) => {
+        return [...prevMessages, ...newMessages];
+    });
     onDismiss = new Subject();
     setNotifications(message) {
-        this._notifications = [message, ...this._notifications];
-        message.index = this._notifications.length - 1;
+        message.index = this._notifications().length;
+        this._notifications.set([message]);
     }
     dismiss(index) {
-        this._notifications = this._notifications.filter((m) => {
+        this._notifications.set(this._notifications().filter((m) => {
             if (m.index !== index)
                 return m;
-        });
+        }));
         this.onDismiss.next(this._notifications.length);
     }
-    _renderNotification(target, notification) {
-        target.setProps({ notification });
-        if (notification.message.autoHide) {
-            setTimeout(() => {
-                notification.dismiss();
-            }, 2000);
-        }
-    }
     _renderNotifications() {
-        if (this._notifications.length > 0) {
-            const list = this._notifications.map((msg) => {
-                const notify = {
-                    message: msg,
-                    dismiss: () => {
-                        this.dismiss(msg.index);
-                    }
-                };
+        if (this._notifications().length > 0) {
+            const list = this._notifications().map((msg) => {
                 return html `
           <ui-notification-message
-            onrendered=${(e) => {
-                    this._renderNotification(e.target, notify);
-                }}
+            data-input=${{ message: msg }}
+            ondismiss=${(e) => { this.dismiss(e.detail.index); }}
           ></ui-notification-message>
         `;
             });

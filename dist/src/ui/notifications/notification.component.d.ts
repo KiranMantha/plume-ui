@@ -1,11 +1,10 @@
 import { IHooks, Renderer } from '@plumejs/core';
-import { INotification } from './notification.type';
+import { Message } from './message';
 export declare class NotificationMessage implements IHooks {
     private renderer;
-    static readonly observedProperties: readonly ["notification"];
-    notification: INotification;
+    message: import("@plumejs/core/dist/src").Signal<Message>;
     constructor(renderer: Renderer);
-    mount(): void;
+    onPropertiesChanged(): void;
     onDismiss(e: Event): void;
     render(): DocumentFragment;
 }

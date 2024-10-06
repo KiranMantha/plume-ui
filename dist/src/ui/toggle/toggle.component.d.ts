@@ -6,11 +6,9 @@ export interface IToggleInput {
 }
 export declare class ToggleComponent implements IHooks {
     private renderer;
-    static readonly observedProperties: readonly ["toggleOptions"];
-    toggleOptions: IToggleInput;
+    toggleOptions: import("@plumejs/core/dist/src").Signal<IToggleInput>;
     private _id;
     constructor(renderer: Renderer);
-    onPropertiesChanged(): void;
     private toggleChange;
     render(): DocumentFragment;
 }
